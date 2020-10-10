@@ -7,26 +7,15 @@ import requests
 import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup
+import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
-plt.style.use('seaborn-white')
+sns.set_style(style='ticks')
 
 BASE_URL = 'https://www.autoscout24.nl/lst?offer=U&cy=NL&'
 YEAR_RANGE = (1990, 2020)
-COLORS = {'beige': 1,
-          'blue': 2,
-          'brown': 3,
-          'darkgoldenrod': 4,  # bronze
-          'yellow': 5,
-          'grey': 6,
-          'green': 7,
-          'red': 10,
-          'black': 11,
-          'silver': 12,
-          'purple': 13,
-          'white': 14,
-          'orange': 15,
-          'gold': 16}
+COLORS = {'beige': 1, 'blue': 2, 'brown': 3, 'darkgoldenrod': 4, 'yellow': 5, 'grey': 6, 'green': 7,
+          'red': 10, 'black': 11, 'silver': 12, 'purple': 13, 'white': 14, 'orange': 15, 'gold': 16}
 
 
 def scrape_color_count(color_id, year):
@@ -65,11 +54,25 @@ def load_data():
 def create_plot(colors_dict):
     df = pd.DataFrame(colors_dict)
     df_scaled = df.div(df.sum(axis=1), axis=0) * 100
-    ax = df_scaled.plot(kind="bar", stacked=True,
-                        color=COLORS.keys(), legend=False)
-    ax.set_facecolor('#e8e8e8')
-    plt.xlabel('Year of Production')
+
+    colors = COLORS.keys()
+    fig, ax = plt.subplots()
+    fig.set_size_inches(20, 10)
+    ax.stackplot(df_scaled.index.values, df_scaled.T,
+                 colors=colors, labels=df_scaled.columns)
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc='upper right')
+    ax.set_facecolor('#f2f2f2')
+    # ax = df_scaled.plot(kind='bar', stacked=True,
+    #                     color=COLORS.keys(), figsize=(20, 10))
+    # ax.legend(bbox_to_anchor=(1.1, 1.05))
+    ax.set_xlim(['1990', '2020'])
+    plt.xticks(rotation=45)
+    ax.set_ylim([0, 100])
+    plt.title('Colors of Cars in The Netherlands by Production Year', fontsize=18)
+    plt.xlabel('Year of Production', fontsize=14)
     ax.yaxis.set_major_formatter(PercentFormatter())
+    plt.tight_layout()
     plt.savefig('car_colors.png', dpi=600)
     plt.show()
 
