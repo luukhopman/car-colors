@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 import seaborn as sns
 import matplotlib.pyplot as plt
 from matplotlib.ticker import PercentFormatter
-sns.set_style(style='ticks')
+sns.set(style='ticks', context='talk')
 
 BASE_URL = 'https://www.autoscout24.nl/lst?offer=U&cy=NL&'
 YEAR_RANGE = (1990, 2020)
@@ -53,37 +53,40 @@ def load_data():
 
 def process_data(colors_dict):
     df = pd.DataFrame(colors_dict)
+
+    # Combine similar colors
+    df['brown'] = df['brown'] + df['bronze']
+    df['grey'] = df['grey'] + df['silver']
+    df['yellow'] = df['yellow'] + df['gold']
+    df.drop(['bronze', 'silver', 'gold'], axis=1, inplace=True)
     df_scaled = df.div(df.sum(axis=1), axis=0) * 100
+    df_scaled = df_scaled[df_scaled.sum().sort_values(ascending=False).index]
     return df_scaled
 
 
 def create_plot(data):
     # Create figure and axis
     fig, ax = plt.subplots()
-    fig.set_size_inches(10, 5)
+    fig.set_size_inches(16, 8)
 
     # Prepare plot data
     x = data.index.values
     y = data.T
-    colors = COLORS.keys()
-    labels = [l.title() for l in data.columns]
+    colors = ['#adadad', '#1c1c1c', '#1678e0', '#e02a16', '#f7f7f7', '#2ac41b',
+              '#f7f5cb', '#f0e83e', '#47462e', '#ffc400', '#af1df2']  # or colors = data.columns
 
     # Create Stackplot
-    ax.stackplot(x, y, colors=colors, edgecolor="none",
-                 labels=labels, alpha=0.8)
+    ax.stackplot(x, y, colors=colors, edgecolor='none')
 
     # Set limits
     ax.set_xlim(['1990', '2020'])
     ax.set_ylim([0, 100])
 
-    # Format legend
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles[::-1], labels[::-1], loc='upper right',
-              bbox_to_anchor=(1.15, 1), facecolor='lightblue', framealpha=0.5)
-
     # Format labels and titles
-    plt.title('Colors of Cars in The Netherlands by Production Year', fontsize=18)
+    plt.title('Colors of Cars in The Netherlands',
+              fontsize=22, fontweight='bold')
     plt.xlabel('Year of Production', fontsize=14)
+    ax.tick_params(labelright=True)
     plt.xticks(rotation=45)
     ax.yaxis.set_major_formatter(PercentFormatter())
 
