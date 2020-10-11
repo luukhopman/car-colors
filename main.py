@@ -51,27 +51,43 @@ def load_data():
         return scrape_data(YEAR_RANGE[0], YEAR_RANGE[1])
 
 
-def create_plot(colors_dict):
+def process_data(colors_dict):
     df = pd.DataFrame(colors_dict)
     df_scaled = df.div(df.sum(axis=1), axis=0) * 100
+    return df_scaled
 
-    colors = COLORS.keys()
+
+def create_plot(data):
+    # Create figure and axis
     fig, ax = plt.subplots()
-    fig.set_size_inches(20, 10)
-    ax.stackplot(df_scaled.index.values, df_scaled.T,
-                 colors=colors, labels=df_scaled.columns)
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles[::-1], labels[::-1], loc='upper right')
-    ax.set_facecolor('#f2f2f2')
-    # ax = df_scaled.plot(kind='bar', stacked=True,
-    #                     color=COLORS.keys(), figsize=(20, 10))
-    # ax.legend(bbox_to_anchor=(1.1, 1.05))
+    fig.set_size_inches(10, 5)
+
+    # Prepare plot data
+    x = data.index.values
+    y = data.T
+    colors = COLORS.keys()
+    labels = [l.title() for l in data.columns]
+
+    # Create Stackplot
+    ax.stackplot(x, y, colors=colors, edgecolor="none",
+                 labels=labels, alpha=0.8)
+
+    # Set limits
     ax.set_xlim(['1990', '2020'])
-    plt.xticks(rotation=45)
     ax.set_ylim([0, 100])
+
+    # Format legend
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc='upper right',
+              bbox_to_anchor=(1.15, 1), facecolor='lightblue', framealpha=0.5)
+
+    # Format labels and titles
     plt.title('Colors of Cars in The Netherlands by Production Year', fontsize=18)
     plt.xlabel('Year of Production', fontsize=14)
+    plt.xticks(rotation=45)
     ax.yaxis.set_major_formatter(PercentFormatter())
+
+    # Save and show figure
     plt.tight_layout()
     plt.savefig('car_colors.png', dpi=600)
     plt.show()
@@ -79,4 +95,5 @@ def create_plot(colors_dict):
 
 if __name__ == "__main__":
     colors_dict = load_data()
-    create_plot(colors_dict)
+    df = process_data(colors_dict)
+    create_plot(df)
