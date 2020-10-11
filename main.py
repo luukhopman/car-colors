@@ -86,8 +86,9 @@ def create_plot(data):
     plt.title('Colors of Cars in The Netherlands',
               fontsize=22, fontweight='bold')
     plt.xlabel('Year of Production', fontsize=14)
-    ax.tick_params(labelright=True)
     plt.xticks(rotation=45)
+    ax.tick_params(labelright=True)
+    ax.yaxis.set_ticks_position('both')
     ax.yaxis.set_major_formatter(PercentFormatter())
 
     # Save and show figure
